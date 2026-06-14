@@ -7,6 +7,8 @@ public class Software
     public string Description { get; set; } = string.Empty;
     public string LatestVersion { get; set; } = string.Empty;
     public int CategoryId { get; set; }
+    
+    public decimal BasePrice { get; set; }
 
     public virtual SoftwareCategory Category { get; set; } = null!;
     public virtual ICollection<Discount> Discounts { get; set; } = new List<Discount>();
