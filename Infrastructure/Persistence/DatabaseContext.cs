@@ -105,6 +105,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> opt, IConfigurati
             entity.Property(s => s.Name).IsRequired().HasMaxLength(150);
             entity.Property(s => s.Description).HasMaxLength(400).IsRequired(false);
             entity.Property(s => s.LatestVersion).IsRequired().HasMaxLength(30);
+            entity.Property(s => s.BasePrice).HasColumnType("decimal(18,2)");
 
             entity.HasOne(s => s.Category)
                 .WithMany(sc => sc.Softwares)
