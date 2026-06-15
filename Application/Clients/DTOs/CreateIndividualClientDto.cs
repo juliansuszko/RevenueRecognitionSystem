@@ -9,7 +9,7 @@ public record CreateIndividualClientDto(
     [Required, MaxLength(50)]
     string Email,
     
-    [Required, MaxLength(15)]
+    [Required, MinLength(9), MaxLength(12)]
     string PhoneNumber,
     
     [Required, MaxLength(50)]
@@ -18,6 +18,6 @@ public record CreateIndividualClientDto(
     [Required, MaxLength(50)]
     string LastName,
     
-    [Required, MaxLength(11)]
+    [Required, MinLength(11), MaxLength(11)]
     string Pesel
     );

@@ -25,4 +25,29 @@ public class ClientsController(IClientService clientService) : ControllerBase
         return Created();
     }
 
+    [HttpPut]
+    [Route("individual/{id}")]
+    public async Task<IActionResult> UpdateIndividualClient(int id, [FromBody] UpdateIndividualClientDto dto,
+        CancellationToken cancellationToken)
+    {
+        await clientService.UpdateIndividualClientAsync(id, dto, cancellationToken);
+        return NoContent();
+    }
+    
+    [HttpPut]
+    [Route("company/{id}")]
+    public async Task<IActionResult> UpdateIndividualClient(int id, [FromBody] UpdateCompanyClientDto dto,
+        CancellationToken cancellationToken)
+    {
+        await clientService.UpdateCompanyClientAsync(id, dto, cancellationToken);
+        return NoContent();
+    }
+    
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteClient(int id, CancellationToken cancellationToken)
+    {
+        await clientService.DeleteClientAsync(id, cancellationToken);
+        return Ok();
+    }
+
 }
