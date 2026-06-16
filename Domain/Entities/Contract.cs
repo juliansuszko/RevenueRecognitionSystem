@@ -15,5 +15,5 @@ public class Contract
     public virtual Client Client { get; set; } = null!;
     public virtual Software Software { get; set; } = null!;
     public virtual ContractStatus Status { get; set; } = null!;
-    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+    public virtual ICollection<ContractPayment> ContractPayments { get; set; } = new List<ContractPayment>();
 }

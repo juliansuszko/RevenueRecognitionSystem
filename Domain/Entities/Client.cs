@@ -9,6 +9,7 @@ public class Client
     public bool IsDeleted { get; set; } = false;
 
     public virtual ICollection<Contract> Contracts { get; set; } = new List<Contract>();
-    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+    public virtual ICollection<ContractPayment> ContractPayments { get; set; } = new List<ContractPayment>();
+    public virtual ICollection<SubscriptionPayment> SubscriptionPayments { get; set; } = new List<SubscriptionPayment>();
     public virtual ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
 }
