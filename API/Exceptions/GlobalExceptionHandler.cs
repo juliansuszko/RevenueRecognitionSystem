@@ -18,11 +18,12 @@ public class GlobalExceptionHandler : IExceptionHandler
         };
 
         context.Response.StatusCode = statusCode;
+        
         await context.Response.WriteAsJsonAsync(new ProblemDetails
         {
             Status = statusCode,
-            Detail = statusCode == StatusCodes.Status500InternalServerError
-                ? "Internal Server Error"
+            Detail = statusCode == StatusCodes.Status500InternalServerError 
+                ? "Internal Server Error" 
                 : exception.Message
         }, cancellationToken);
 
