@@ -10,8 +10,7 @@ namespace API.Controllers;
 [Authorize]
 public class PaymentsController(IPaymentService service) : ControllerBase
 {
-    [HttpPost]
-    [Route("/contract")]
+    [HttpPost("contract")]
     public async Task<IActionResult> CreateContractPayment([FromBody] CreateContractPaymentDto dto,
         CancellationToken cancellationToken)
     {
@@ -19,8 +18,7 @@ public class PaymentsController(IPaymentService service) : ControllerBase
         return Created();
     }
 
-    [HttpPost]
-    [Route("/subcription")]
+    [HttpPost("subscription")]
     public async Task<IActionResult> CreateSubscriptionPayment([FromBody] CreateSubscriptionPaymentDto dto, CancellationToken cancellationToken)
     {
         await service.CreateSubscriptionPaymentAsync(dto, cancellationToken);

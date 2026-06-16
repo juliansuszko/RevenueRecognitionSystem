@@ -72,6 +72,51 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> opt, IConfigurati
                 Name = "User"
             }
         ]);
+
+        modelBuilder.Entity<SoftwareCategory>().HasData([
+            new SoftwareCategory { CategoryId = 1, Name = "Sys" },
+            new SoftwareCategory { CategoryId = 2, Name = "Test" },
+            new SoftwareCategory { CategoryId = 3, Name = "Finanse" }
+        ]);
+
+        modelBuilder.Entity<Software>().HasData([
+            new Software
+            {
+                SoftwareId = 1, Name = "System Pro", Description = "Kompleksowy system",
+                LatestVersion = "3.2.1", CategoryId = 1, BasePrice = 5000.00m
+            },
+            new Software
+            {
+                SoftwareId = 2, Name = "TestMax", Description = "System testowy",
+                LatestVersion = "2.0.0", CategoryId = 2, BasePrice = 3000.00m
+            },
+            new Software
+            {
+                SoftwareId = 3, Name = "FinanceTracker", Description = "Oprogramowanie finansowo-księgowe",
+                LatestVersion = "1.5.0", CategoryId = 3, BasePrice = 2000.00m
+            }
+        ]);
+
+        modelBuilder.Entity<ContractStatus>().HasData([
+            new ContractStatus { StatusId = 1, StatusName = "Active" },
+            new ContractStatus { StatusId = 2, StatusName = "Signed" },
+            new ContractStatus { StatusId = 3, StatusName = "Cancelled" },
+        ]);
+
+        modelBuilder.Entity<Discount>().HasData([
+            new Discount
+            {
+                DiscountId = 1, Name = "Promocja letnia", Value = 10.00m,
+                DateFrom = new DateTime(2026, 6, 1), DateTo = new DateTime(2026, 8, 31),
+                SoftwareId = 1
+            },
+            new Discount
+            {
+                DiscountId = 2, Name = "Rabat na test", Value = 15.00m,
+                DateFrom = new DateTime(2026, 1, 1), DateTo = new DateTime(2026, 12, 31),
+                SoftwareId = 2
+            }
+        ]);
         
         modelBuilder.Entity<Client>().UseTptMappingStrategy();
 

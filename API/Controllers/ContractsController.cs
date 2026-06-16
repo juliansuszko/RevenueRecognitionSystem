@@ -11,7 +11,7 @@ namespace API.Controllers;
 public class ContractsController(IContractService contractService) : ControllerBase
 {
     [HttpPost]
-    [Route("/create-Contract")]
+    [Route("create-Contract")]
     public async Task<IActionResult> CreateContract([FromBody] CreateContractDto dto,
         CancellationToken cancellationToken)
     {

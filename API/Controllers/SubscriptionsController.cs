@@ -11,7 +11,7 @@ namespace API.Controllers;
 public class SubscriptionsController(ISubscriptionService service) : ControllerBase
 {
     [HttpPost]
-    [Route("/create-Subscription")]
+    [Route("create-subscription")]
     public async Task<IActionResult> CreateSubscription([FromBody] CreateSubscriptionDto dto,
         CancellationToken cancellationToken)
     {

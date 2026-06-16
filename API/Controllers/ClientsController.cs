@@ -11,7 +11,7 @@ namespace API.Controllers;
 public class ClientsController(IClientService clientService) : ControllerBase
 {
     [HttpPost]
-    [Route("/individual")]
+    [Route("individual")]
     public async Task<IActionResult> RegisterIndividualClient([FromBody] CreateIndividualClientDto dto, CancellationToken cancellationToken)
     {
         await clientService.RegisterIndividualClientAsync(dto, cancellationToken);
@@ -19,7 +19,7 @@ public class ClientsController(IClientService clientService) : ControllerBase
     }
 
     [HttpPost]
-    [Route("/company")]
+    [Route("company")]
     public async Task<IActionResult> RegisterCompanyClient([FromBody] CreateCompanyClientDto dto,
         CancellationToken cancellationToken)
     {

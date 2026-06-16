@@ -10,6 +10,12 @@ public class SubscriptionService(DatabaseContext ctx) : ISubscriptionService
 {
     public async Task CreateSubscriptionAsync(CreateSubscriptionDto dto, CancellationToken cancellationToken)
     {
+        var client = await ctx.Clients.FirstOrDefaultAsync(c => c.ClientId == dto.ClientId, cancellationToken);
+        if (client is null)
+        {
+            throw new NotFoundException($"Client with id {dto.ClientId} does not exist");
+        }
+        
         var software = await ctx.Softwares
             .Include(s => s.Discounts)
             .FirstOrDefaultAsync(s => s.SoftwareId == dto.SoftwareId, cancellationToken);
@@ -25,13 +31,13 @@ public class SubscriptionService(DatabaseContext ctx) : ISubscriptionService
         var additionalDiscount = isReturningClient ? 5m : 0m;
         
         var maxDiscount = software.Discounts
-            .Where(d => d.DateFrom <= DateTime.Now && d.DateTo >= DateTime.Now)
+            .Where(d => d.DateFrom <= DateTime.UtcNow && d.DateTo >= DateTime.UtcNow)
             .Max(d => (decimal?)d.Value) ?? 0m;
         
         var totalDiscount = (maxDiscount + additionalDiscount) / 100;
         var priceForPeriod = software.BasePrice * dto.PeriodInMonths;
         var priceAfterAllDiscounts = priceForPeriod - (priceForPeriod * totalDiscount);
-        var priceAfterLoyalDiscount = priceForPeriod - (priceForPeriod * additionalDiscount);
+        var priceAfterLoyalDiscount = priceForPeriod - (priceForPeriod * (additionalDiscount/100));
         
         var subscription = new Domain.Entities.Subscription
         {
@@ -40,17 +46,17 @@ public class SubscriptionService(DatabaseContext ctx) : ISubscriptionService
             ClientId = dto.ClientId,
             SoftwareId = dto.SoftwareId,
             Price = priceAfterLoyalDiscount,
-            ActiveUntil = DateTime.Now.AddMonths(dto.PeriodInMonths)
+            ActiveUntil = DateTime.UtcNow.AddMonths(dto.PeriodInMonths)
         };
         
         await ctx.Subscriptions.AddAsync(subscription, cancellationToken);
 
         var firstPayment = new SubscriptionPayment
         {
-            SubscriptionId = subscription.SubscriptionId,
+            Subscription = subscription,
             ClientId = dto.ClientId,
             Amount = priceAfterAllDiscounts,
-            PaymentDate = DateTime.Now,
+            PaymentDate = DateTime.UtcNow,
         };
         
         await ctx.SubscriptionPayments.AddAsync(firstPayment, cancellationToken);
