@@ -1,11 +1,13 @@
 using Application.Clients;
 using Application.Clients.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ClientsController(IClientService clientService) : ControllerBase
 {
     [HttpPost]
@@ -27,6 +29,7 @@ public class ClientsController(IClientService clientService) : ControllerBase
 
     [HttpPut]
     [Route("individual/{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateIndividualClient(int id, [FromBody] UpdateIndividualClientDto dto,
         CancellationToken cancellationToken)
     {
@@ -36,6 +39,7 @@ public class ClientsController(IClientService clientService) : ControllerBase
     
     [HttpPut]
     [Route("company/{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> UpdateIndividualClient(int id, [FromBody] UpdateCompanyClientDto dto,
         CancellationToken cancellationToken)
     {
@@ -44,6 +48,7 @@ public class ClientsController(IClientService clientService) : ControllerBase
     }
     
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteClient(int id, CancellationToken cancellationToken)
     {
         await clientService.DeleteClientAsync(id, cancellationToken);
