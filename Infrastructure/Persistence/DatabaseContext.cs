@@ -18,7 +18,11 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> opt, IConfigurati
     public virtual DbSet<ContractStatus> ContractStatuses { get; set; }
     public virtual DbSet<Contract> Contracts { get; set; }
     public virtual DbSet<Subscription> Subscriptions { get; set; }
-    public virtual DbSet<Payment> Payments { get; set; }
+    public virtual DbSet<ContractPayment> ContractPayments { get; set; }
+
+    public virtual DbSet<SubscriptionPayment> SubscriptionPayments { get; set; }
+    
+    
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -158,6 +162,7 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> opt, IConfigurati
             entity.HasKey(s => s.SubscriptionId);
             entity.Property(s => s.Name).IsRequired().HasMaxLength(150);
             entity.Property(s => s.Price).HasColumnType("decimal(20,2)").IsRequired();
+            entity.Property(s => s.PeriodInMonths).IsRequired(); 
 
             entity.HasOne(s => s.Client)
                 .WithMany(cl => cl.Subscriptions)
@@ -170,27 +175,36 @@ public class DatabaseContext(DbContextOptions<DatabaseContext> opt, IConfigurati
                 .OnDelete(DeleteBehavior.Restrict);
         });
         
-        modelBuilder.Entity<Payment>(entity =>
+        modelBuilder.Entity<ContractPayment>(entity =>
         {
             entity.HasKey(p => p.PaymentId);
             entity.Property(p => p.Amount).HasColumnType("decimal(20,2)").IsRequired();
 
             entity.HasOne(p => p.Client)
-                .WithMany(cl => cl.Payments)
+                .WithMany(cl => cl.ContractPayments)
                 .HasForeignKey(p => p.ClientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(p => p.Contract)
-                .WithMany(c => c.Payments)
+                .WithMany(c => c.ContractPayments)
                 .HasForeignKey(p => p.ContractId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .IsRequired(false);
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<SubscriptionPayment>(entity =>
+        {
+            entity.HasKey(p => p.PaymentId);
+            entity.Property(p => p.Amount).HasColumnType("decimal(20,2)").IsRequired();
+            
+            entity.HasOne(p => p.Client)
+                .WithMany(cl => cl.SubscriptionPayments)
+                .HasForeignKey(p => p.ClientId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(p => p.Subscription)
-                .WithMany(s => s.Payments)
+                .WithMany(s => s.SubscriptionPayments)
                 .HasForeignKey(p => p.SubscriptionId)
-                .OnDelete(DeleteBehavior.Restrict)
-                .IsRequired(false);
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
