@@ -11,7 +11,7 @@ public class PaymentService(DatabaseContext ctx) : IPaymentService
     public async Task CreateContractPaymentAsync(CreateContractPaymentDto dto, CancellationToken cancellationToken)
     {
         var contract = await ctx.Contracts
-            .Include(c => c.Payments)
+            .Include(c => c.ContractPayments)
             .Include(c => c.Status)
             .FirstOrDefaultAsync(c => c.ContractId == dto.ContractId, cancellationToken);
 
@@ -32,18 +32,26 @@ public class PaymentService(DatabaseContext ctx) : IPaymentService
 
         if (DateTime.Now > contract.EndDate)
         {
-            throw new ConflictException($"Contract's payment time is over");
+            if (contract.ContractPayments.Any())
+            {
+                foreach (var paymentToDelete in contract.ContractPayments)
+                {
+                    contract.ContractPayments.Remove(paymentToDelete);
+                }
+            }
+            
+            throw new ConflictException($"Contract's payment time is over. Previous payments refunded");
         }
         
-        var sumPaid = contract.Payments.Sum(p => p.Amount);
+        var sumPaid = contract.ContractPayments.Sum(p => p.Amount);
         var amountLeft = contract.Price - sumPaid;
 
-        if (dto.Amount < amountLeft)
+        if (dto.Amount > amountLeft)
         {
-            throw new ConflictException($"Payment too high, {amountLeft} left");
+            throw new ConflictException($"ContractPayment too high, {amountLeft} left");
         }
 
-        var payment = new Payment
+        var payment = new ContractPayment
         {
             ClientId = dto.ClientId,
             ContractId = dto.ContractId,
@@ -51,7 +59,7 @@ public class PaymentService(DatabaseContext ctx) : IPaymentService
             PaymentDate = DateTime.Now
         };
         
-        await ctx.Payments.AddAsync(payment, cancellationToken);
+        await ctx.ContractPayments.AddAsync(payment, cancellationToken);
 
         if (sumPaid + dto.Amount == contract.Price)
         {
@@ -69,8 +77,47 @@ public class PaymentService(DatabaseContext ctx) : IPaymentService
         await ctx.SaveChangesAsync(cancellationToken);        
     }
 
-    public Task CreateSubscriptionPaymentAsync(CreateSubscriptionPaymentDto dto, CancellationToken cancellationToken)
+    public async Task CreateSubscriptionPaymentAsync(CreateSubscriptionPaymentDto dto, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var subscription =
+            await ctx.Subscriptions.FirstOrDefaultAsync(s => s.SubscriptionId == dto.SubscriptionId, cancellationToken);
+
+        if (subscription is null)
+        {
+            throw new NotFoundException($"Subscription with id {dto.SubscriptionId} not found");
+        }
+
+        var lastPayment = await ctx.SubscriptionPayments
+            .Where (p => p.SubscriptionId == subscription.SubscriptionId)
+            .OrderByDescending(p => p.PaymentDate)
+            .FirstOrDefaultAsync(cancellationToken);
+        
+        
+
+        if (lastPayment != null && lastPayment.PaymentDate >= subscription.ActiveUntil.AddDays(-subscription.PeriodInMonths))
+        {
+            if (DateTime.Now <= subscription.ActiveUntil)
+            {
+                throw new ConflictException("You have already paid for current period");
+            }
+        }
+
+        if (dto.Amount != subscription.Price)
+        {
+            throw new ConflictException($"Subscription price must be equal to {subscription.Price}");
+        }
+
+        var payment = new SubscriptionPayment
+        {
+            SubscriptionId = dto.SubscriptionId,
+            ClientId = dto.ClientId,
+            Amount = dto.Amount,
+            PaymentDate = DateTime.Now
+        };
+        
+        await ctx.SubscriptionPayments.AddAsync(payment, cancellationToken);
+        subscription.ActiveUntil = subscription.ActiveUntil.AddDays(subscription.PeriodInMonths);
+        
+        await ctx.SaveChangesAsync(cancellationToken);
     }
 }

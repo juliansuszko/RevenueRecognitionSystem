@@ -16,7 +16,7 @@ public class PaymentsController(IPaymentService service) : ControllerBase
         CancellationToken cancellationToken)
     {
         await service.CreateContractPaymentAsync(dto, cancellationToken);
-        return Ok();
+        return Created();
     }
 
     [HttpPost]
@@ -24,6 +24,6 @@ public class PaymentsController(IPaymentService service) : ControllerBase
     public async Task<IActionResult> CreateSubscriptionPayment([FromBody] CreateSubscriptionPaymentDto dto, CancellationToken cancellationToken)
     {
         await service.CreateSubscriptionPaymentAsync(dto, cancellationToken);
-        return Ok();
+        return Created();
     }
 }

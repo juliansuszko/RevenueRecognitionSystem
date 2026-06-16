@@ -10,13 +10,24 @@ public class RevenueService(DatabaseContext ctx, HttpClient httpClient) : IReven
 {
     public async Task<RevenueDto> GetTotalRevenueAsync(string? currencyCode, CancellationToken cancellationToken)
     {
-        var currentRevenue = await ctx.Contracts
+        var currentContractRevenue = await ctx.Contracts
             .Where(c => c.Status.StatusName == "Signed")
             .SumAsync(c => c.Price, cancellationToken);
+        
+        var currentSubscriptionRevenue = await ctx.SubscriptionPayments
+            .SumAsync(p => p.Amount, cancellationToken);
+        
+        var currentRevenue = currentContractRevenue + currentSubscriptionRevenue;
 
-        var predictedRevenue = await ctx.Contracts
+        var predictedContractRevenue = await ctx.Contracts
             .Where(c => c.Status.StatusName == "Signed" || c.Status.StatusName == "Active")
             .SumAsync(c => c.Price, cancellationToken);
+
+        var predictedSubscriptionRevenue = currentSubscriptionRevenue + await ctx.Subscriptions
+            .Where(s => s.ActiveUntil >= DateTime.Now)
+            .SumAsync(s => s.Price, cancellationToken);
+        
+        var predictedRevenue = predictedContractRevenue + predictedSubscriptionRevenue;
 
         if (string.IsNullOrWhiteSpace(currencyCode) || currencyCode.ToUpper() == "PLN")
         {
@@ -34,13 +45,25 @@ public class RevenueService(DatabaseContext ctx, HttpClient httpClient) : IReven
 
     public async Task<RevenueDto> GetSoftwareRevenueAsync(int softwareId, string? currencyCode, CancellationToken cancellationToken)
     {
-        var currentRevenue = await ctx.Contracts
+        var currentContractRevenue = await ctx.Contracts
             .Where(c => c.SoftwareId == softwareId && c.Status.StatusName == "Signed")
             .SumAsync(c => c.Price, cancellationToken);
 
-        var predictedRevenue = await ctx.Contracts
+        var currentSubscriptionRevenue = await ctx.SubscriptionPayments
+            .Where(p => p.Subscription.SoftwareId == softwareId)
+            .SumAsync(p => p.Amount, cancellationToken);
+
+        var currentRevenue = currentContractRevenue + currentSubscriptionRevenue;
+
+        var predictedContractRevenue = await ctx.Contracts
             .Where(c => c.SoftwareId == softwareId && (c.Status.StatusName == "Signed" || c.Status.StatusName == "Active"))
             .SumAsync(c => c.Price, cancellationToken);
+
+        var predictedSubscriptionRevenue = currentSubscriptionRevenue + await ctx.Subscriptions
+            .Where(s => s.SoftwareId == softwareId && s.ActiveUntil >= DateTime.Now)
+            .SumAsync(s => s.Price, cancellationToken);
+        
+        var predictedRevenue = predictedContractRevenue + predictedSubscriptionRevenue;
         
         if (string.IsNullOrWhiteSpace(currencyCode) || currencyCode.ToUpper() == "PLN")
         {
