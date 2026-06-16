@@ -4,7 +4,7 @@ public class Subscription
 {
     public int SubscriptionId { get; set; }
     public string Name { get; set; } = string.Empty;
-    public int Period { get; set; }
+    public int PeriodInMonths { get; set; }
     public decimal Price { get; set; }
     public DateTime ActiveUntil { get; set; }
     public int ClientId { get; set; }
@@ -12,5 +12,5 @@ public class Subscription
     
     public virtual Client Client { get; set; } = null!;
     public virtual Software Software { get; set; } = null!;
-    public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+    public virtual ICollection<SubscriptionPayment> SubscriptionPayments { get; set; } = new List<SubscriptionPayment>();
 }
