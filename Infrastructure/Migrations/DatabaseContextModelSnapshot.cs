@@ -147,6 +147,23 @@ namespace Infrastructure.Migrations
                     b.HasKey("StatusId");
 
                     b.ToTable("ContractStatuses");
+
+                    b.HasData(
+                        new
+                        {
+                            StatusId = 1,
+                            StatusName = "Active"
+                        },
+                        new
+                        {
+                            StatusId = 2,
+                            StatusName = "Signed"
+                        },
+                        new
+                        {
+                            StatusId = 3,
+                            StatusName = "Cancelled"
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.Discount", b =>
@@ -179,6 +196,26 @@ namespace Infrastructure.Migrations
                     b.HasIndex("SoftwareId");
 
                     b.ToTable("Discounts");
+
+                    b.HasData(
+                        new
+                        {
+                            DiscountId = 1,
+                            DateFrom = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DateTo = new DateTime(2026, 8, 31, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Promocja letnia",
+                            SoftwareId = 1,
+                            Value = 10.00m
+                        },
+                        new
+                        {
+                            DiscountId = 2,
+                            DateFrom = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            DateTo = new DateTime(2026, 12, 31, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Name = "Rabat na test",
+                            SoftwareId = 2,
+                            Value = 15.00m
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.Software", b =>
@@ -214,6 +251,35 @@ namespace Infrastructure.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Softwares");
+
+                    b.HasData(
+                        new
+                        {
+                            SoftwareId = 1,
+                            BasePrice = 5000.00m,
+                            CategoryId = 1,
+                            Description = "Kompleksowy system",
+                            LatestVersion = "3.2.1",
+                            Name = "System Pro"
+                        },
+                        new
+                        {
+                            SoftwareId = 2,
+                            BasePrice = 3000.00m,
+                            CategoryId = 2,
+                            Description = "System testowy",
+                            LatestVersion = "2.0.0",
+                            Name = "TestMax"
+                        },
+                        new
+                        {
+                            SoftwareId = 3,
+                            BasePrice = 2000.00m,
+                            CategoryId = 3,
+                            Description = "Oprogramowanie finansowo-księgowe",
+                            LatestVersion = "1.5.0",
+                            Name = "FinanceTracker"
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.SoftwareCategory", b =>
@@ -232,6 +298,23 @@ namespace Infrastructure.Migrations
                     b.HasKey("CategoryId");
 
                     b.ToTable("SoftwareCategories");
+
+                    b.HasData(
+                        new
+                        {
+                            CategoryId = 1,
+                            Name = "Sys"
+                        },
+                        new
+                        {
+                            CategoryId = 2,
+                            Name = "Test"
+                        },
+                        new
+                        {
+                            CategoryId = 3,
+                            Name = "Finanse"
+                        });
                 });
 
             modelBuilder.Entity("Domain.Entities.Subscription", b =>

@@ -1,4 +1,410 @@
 @API_HostAddress = http://localhost:5165
-@token = token
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkNDhiNThhMC1iNGVjLTRiYjctYjdmMi1hNGYwYzQ4Y2U0ZDciLCJ1bmlxdWVfbmFtZSI6ImFkbWluIiwicm9sZSI6IkFkbWluIiwibmJmIjoxNzgxNjM1NTUzLCJleHAiOjE3ODE2MzY0NTMsImlhdCI6MTc4MTYzNTU1MywiaXNzIjoiYXBpIiwiYXVkIjoiYXBpIn0.38iXNuNAU29wiYc1d-Axd5eqfQv38DXT5JLknX0AvP0
 
-###
+########################################
+# 1. AUTH
+########################################
+### 1.1 Rejestracja użytkownika (rola "User")
+# POST {{API_HostAddress}}/api/auth/sign-up
+POST {{API_HostAddress}}/api/auth/sign-up
+Content-Type: application/json
+
+{
+  "login": "admin2",
+  "password": "123!",
+  "repeatPassword": "123!"
+}
+
+### 1.4 Wylogowanie
+# POST {{API_HostAddress}}/api/auth/sign-out
+# Authorization: Bearer {{token}}
+
+
+### 1.2 Logowanie (zapisz token)
+POST {{API_HostAddress}}/api/auth/sign-in
+Content-Type: application/json
+
+{
+  "login": "admin",
+  "password": "123"
+}
+
+### 1.3 Odświeżenie tokenu
+POST {{API_HostAddress}}/api/auth/refresh-token
+Authorization: Bearer {{token}}
+
+########################################
+# 2. KLIENCI
+########################################
+
+### 2.1 Dodaj klienta indywidualnego (ClientId = 1)
+POST {{API_HostAddress}}/api/clients/individual
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "address": "ul. Marszałkowska 10, Warszawa",
+  "email": "jan.kowalski@email.com",
+  "phoneNumber": "500100200",
+  "firstName": "Jan",
+  "lastName": "Kowalski",
+  "pesel": "90042421211"
+}
+
+### 2.2 Dodaj drugiego klienta indywidualnego (ClientId = 2)
+POST {{API_HostAddress}}/api/clients/individual
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "address": "ul. Łazienkowska 5, Kraków",
+  "email": "anna.nowak@email.com",
+  "phoneNumber": "600300400",
+  "firstName": "Anna",
+  "lastName": "Nowak",
+  "pesel": "85052012345"
+}
+
+### 2.3 Dodaj firmę (ClientId = 3)
+POST {{API_HostAddress}}/api/clients/company
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "address": "ul. Biznesowa 99, Wrocław",
+  "email": "kontakt@techcorp.pl",
+  "phoneNumber": "221234567",
+  "name": "TechCorp Sp. z o.o.",
+  "krs": "1234567890"
+}
+
+### 2.4 Dodaj drugą firmę (ClientId = 4)
+POST {{API_HostAddress}}/api/clients/company
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "address": "ul. Przemysłowa 15, Gdańsk",
+  "email": "biuro@megasoft.pl",
+  "phoneNumber": "585551234",
+  "name": "MegaSoft S.A.",
+  "krs": "9876543210"
+}
+
+### 2.5 Aktualizuj klienta indywidualnego (wymaga roli Admin)
+PUT {{API_HostAddress}}/api/clients/individual/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "address": "ul. Nowy Świat 20, Warszawa",
+  "email": "jan.kowalski.nowy@email.com",
+  "phoneNumber": "500999888",
+  "firstName": "Jan",
+  "lastName": "Kowalski-Nowak"
+}
+
+### 2.6 Aktualizuj firmę (wymaga roli Admin)
+PUT {{API_HostAddress}}/api/clients/company/3
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "address": "ul. Biznesowa 100, Wrocław",
+  "email": "nowy@techcorp.pl",
+  "phoneNumber": "221234999",
+  "name": "TechCorp Group Sp. z o.o."
+}
+
+### 2.7 Soft-delete klienta indywidualnego (wymaga roli Admin)
+DELETE {{API_HostAddress}}/api/clients/2
+Authorization: Bearer {{token}}
+
+### 2.8 Próba usunięcia firmy - powinno zwrócić błąd
+DELETE {{API_HostAddress}}/api/clients/3
+Authorization: Bearer {{token}}
+
+
+########################################
+# 3. KONTRAKTY
+########################################
+
+### 3.1 Kontrakt na System Pro dla Jana (ClientId=1, SoftwareId=1)
+# Cena: BasePrice=5000, zniżka letnia 10% → 4500, +1 rok wsparcia (2 lata) → +1000 = 5500
+# EndDate musi być 3-30 dni od dziś
+POST {{API_HostAddress}}/api/contracts/create-Contract
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "clientId": 1,
+  "softwareId": 1,
+  "endDate": "2026-07-10T00:00:00",
+  "yearsOfSupport": 2
+}
+
+### 3.2 Kontrakt na FinanceTracker dla firmy TechCorp (ClientId=3, SoftwareId=3)
+# Cena: BasePrice=2000, brak zniżki → 2000, 1 rok wsparcia (domyślny) → 2000
+POST {{API_HostAddress}}/api/contracts/create-Contract
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "clientId": 3,
+  "softwareId": 3,
+  "endDate": "2026-07-10T00:00:00",
+  "yearsOfSupport": 1
+}
+
+### 3.3 Błąd - duplikat kontraktu (klient 1 ma już aktywny kontrakt na software 1)
+POST {{API_HostAddress}}/api/contracts/create-Contract
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "clientId": 1,
+  "softwareId": 1,
+  "endDate": "2026-07-15T00:00:00",
+  "yearsOfSupport": 1
+}
+
+### 3.4 Błąd - za krótki przedział (mniej niż 3 dni)
+POST {{API_HostAddress}}/api/contracts/create-Contract
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "clientId": 4,
+  "softwareId": 2,
+  "endDate": "2026-06-17T00:00:00",
+  "yearsOfSupport": 1
+}
+
+### 3.5 Błąd - za długi przedział (więcej niż 30 dni)
+POST {{API_HostAddress}}/api/contracts/create-Contract
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "clientId": 4,
+  "softwareId": 2,
+  "endDate": "2026-08-30T00:00:00",
+  "yearsOfSupport": 1
+}
+
+
+########################################
+# 4. PŁATNOŚCI ZA KONTRAKTY
+########################################
+
+### 4.1 Pierwsza rata za kontrakt 1 (Jan, System Pro, cena=5500)
+POST {{API_HostAddress}}/api/payments/contract
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "clientId": 1,
+  "contractId": 1,
+  "amount": 2000.00
+}
+
+### 4.2 Druga rata za kontrakt 1
+POST {{API_HostAddress}}/api/payments/contract
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "clientId": 1,
+  "contractId": 1,
+  "amount": 2000.00
+}
+
+### 4.3 Ostatnia rata - kontrakt 1 → status "Signed", przychód uznany
+POST {{API_HostAddress}}/api/payments/contract
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "clientId": 1,
+  "contractId": 1,
+  "amount": 1500.00
+}
+
+### 4.4 Pełna płatność za kontrakt 2 (TechCorp, FinanceTracker, cena=2000)
+POST {{API_HostAddress}}/api/payments/contract
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "clientId": 3,
+  "contractId": 2,
+  "amount": 2000.00
+}
+
+### 4.5 Błąd - kontrakt już opłacony (Signed)
+POST {{API_HostAddress}}/api/payments/contract
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "clientId": 1,
+  "contractId": 1,
+  "amount": 100.00
+}
+
+### 4.6 Błąd - kwota przekracza pozostałą do zapłaty
+POST {{API_HostAddress}}/api/payments/contract
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "clientId": 3,
+  "contractId": 2,
+  "amount": 99999.00
+}
+
+
+########################################
+# 5. SUBSKRYPCJE
+########################################
+
+### 5.1 Subskrypcja na TestMax dla Jana (ClientId=1, SoftwareId=2)
+# Jan jest teraz "returning client" (ma Signed kontrakt) → +5% loyalty
+# BasePrice=3000, okres=6 mcy → 3000*6 = 18000
+# Zniżka "Rabat na test" 15% + loyalty 5% = 20%
+# Pierwsza płatność: 18000 - 18000*0.20 = 14400
+# Cena odnowienia (tylko loyalty): 18000 - 18000*0.05 = 17100
+POST {{API_HostAddress}}/api/subscriptions/create-Subscription
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "TestMax Półroczna",
+  "periodInMonths": 6,
+  "price": 199.99,
+  "softwareId": 2,
+  "clientId": 1
+}
+
+### 5.2 Subskrypcja na System Pro dla MegaSoft (ClientId=4, SoftwareId=1)
+# Nowy klient, brak loyalty
+# BasePrice=5000, okres=12 mcy → 5000*12 = 60000
+# Zniżka letnia 10%
+# Pierwsza płatność: 60000 - 60000*0.10 = 54000
+# Cena odnowienia: 60000
+POST {{API_HostAddress}}/api/subscriptions/create-Subscription
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "System Pro Roczna",
+  "periodInMonths": 12,
+  "price": 499.99,
+  "softwareId": 1,
+  "clientId": 4
+}
+
+### 5.3 Błąd - duplikat (klient 1 ma już subskrypcję na software 2)
+# (jeśli serwis to sprawdza)
+POST {{API_HostAddress}}/api/subscriptions/create-Subscription
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Duplikat",
+  "periodInMonths": 1,
+  "price": 100,
+  "softwareId": 2,
+  "clientId": 1
+}
+
+
+########################################
+# 6. PŁATNOŚCI ZA SUBSKRYPCJE (ODNOWIENIA)
+########################################
+
+### 6.1 Błąd - już opłacono bieżący okres (subskrypcja 1)
+POST {{API_HostAddress}}/api/payments/subscription
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "clientId": 1,
+  "subscriptionId": 1,
+  "amount": 17100.00
+}
+
+### 6.2 Błąd - nieprawidłowa kwota odnowienia
+POST {{API_HostAddress}}/api/payments/subscription
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "clientId": 4,
+  "subscriptionId": 2,
+  "amount": 1.00
+}
+
+
+########################################
+# 7. NOWY KONTRAKT PO SUBSKRYPCJI (returning client)
+########################################
+
+### 7.1 Kontrakt na FinanceTracker dla MegaSoft (ClientId=4, SoftwareId=3)
+# MegaSoft ma subskrypcję → returning client → +5% loyalty
+# BasePrice=2000, brak zniżki procentowej na software 3
+# totalDiscount = 5%, price = 2000 - 100 = 1900, +0 extra years = 1900
+POST {{API_HostAddress}}/api/contracts/create-Contract
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "clientId": 4,
+  "softwareId": 3,
+  "endDate": "2026-07-10T00:00:00",
+  "yearsOfSupport": 1
+}
+
+### 7.2 Opłać kontrakt 3 w całości
+POST {{API_HostAddress}}/api/payments/contract
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "clientId": 4,
+  "contractId": 3,
+  "amount": 1900.00
+}
+
+
+########################################
+# 8. PRZYCHÓD
+########################################
+
+### 8.1 Całkowity przychód firmy (PLN)
+GET {{API_HostAddress}}/api/revenue
+Authorization: Bearer {{token}}
+
+### 8.2 Całkowity przychód w USD
+GET {{API_HostAddress}}/api/revenue?currencyCode=USD
+Authorization: Bearer {{token}}
+
+### 8.3 Całkowity przychód w EUR
+GET {{API_HostAddress}}/api/revenue?currencyCode=EUR
+Authorization: Bearer {{token}}
+
+### 8.4 Przychód dla System Pro (SoftwareId=1)
+GET {{API_HostAddress}}/api/revenue/1
+Authorization: Bearer {{token}}
+
+### 8.5 Przychód dla TestMax (SoftwareId=2)
+GET {{API_HostAddress}}/api/revenue/2
+Authorization: Bearer {{token}}
+
+### 8.6 Przychód dla FinanceTracker (SoftwareId=3)
+GET {{API_HostAddress}}/api/revenue/3
+Authorization: Bearer {{token}}
+
+### 8.7 Przychód dla FinanceTracker w EUR
+GET {{API_HostAddress}}/api/revenue/3?currencyCode=EUR
+Authorization: Bearer {{token}}
